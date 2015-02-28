@@ -60,8 +60,16 @@ var computePortfolio = function(slicedResults, callback) {
 		portfolioData[i] = [];
 		portfolioData[i][1] = 0;
 		for (var j = 0; j < slicedResults.length; j++) {
-			portfolioData[i][0] = slicedResults[j][i][0];
-			portfolioData[i][1] += slicedResults[j][i][1];
+			try {
+				portfolioData[i][0] = slicedResults[j][i][0];
+				portfolioData[i][1] += slicedResults[j][i][1];	
+			}
+			catch (err) {
+				throw err;
+				res.json({
+					data: "Error occurred in accessing elements in slicedResults."
+				});
+			}
 		}
 	}
 	
@@ -77,7 +85,14 @@ app.get('/', function(req, res) {
 
 app.get('/quandl', function(req, res) {
 	var stocks = req.query.stocks;
-	var count = req.query.stocks.length;
+	var count = 0;
+	if (req.query.stocks !== null || req.query.stocks.length === 0) {
+		res.json({
+			data: "Error occurred. Please pass in a valid array of stock tickers."
+		});
+	} else {
+		count = req.query.stocks.length;
+	}
 	console.log(stocks);
 	var results = [];
 	var url, payload;
