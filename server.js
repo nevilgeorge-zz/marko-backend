@@ -10,8 +10,7 @@ var express = require('express'),
 // variables
 var apikey = 'J7hxBtcABx8AsszfDzq-',
 	baseURL = 'https://www.quandl.com/api/v1/datasets/WIKI/';
-	extURL = '.json?column=11&sort_order=asc&collapse=monthly&auth_token=' + apikey;
-	url = 'https://www.quandl.com/api/v1/datasets/WIKI/AAPL.json?column=11&sort_order=asc&collapse=daily&auth_token=J7hxBtcABx8AsszfDzq-';
+	extURL = '.json?column=11&sort_order=asc&collapse=daily&exclude_headers=true&auth_token=' + apikey;
 
 // functions
 // asynchronous function that finds the latest date to start calculating portfolios from
