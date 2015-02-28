@@ -2,8 +2,10 @@
 
 var express = require('express'),
 	app = express(),
-	request = require('request');
+	request = require('request'),
+	cors = require('cors');
 
+app.use(cors());
 app.set('port', (process.env.PORT || 5000));
 
 app.get('/', function(req, res) {
