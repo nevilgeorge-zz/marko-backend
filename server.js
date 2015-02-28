@@ -5,7 +5,8 @@ var express = require('express'),
 	app = express(),
 	request = require('request'),
 	cors = require('cors'),
-	wait = require('wait.for');
+	wait = require('wait.for'),
+	bodyParser = require('body-parser');
 
 // variables
 var apikey = 'J7hxBtcABx8AsszfDzq-',
@@ -60,16 +61,9 @@ var computePortfolio = function(slicedResults, callback) {
 		portfolioData[i] = [];
 		portfolioData[i][1] = 0;
 		for (var j = 0; j < slicedResults.length; j++) {
-			try {
-				portfolioData[i][0] = slicedResults[j][i][0];
-				portfolioData[i][1] += slicedResults[j][i][1];	
-			}
-			catch (err) {
-				throw err;
-				res.json({
-					data: "Error occurred in accessing elements in slicedResults."
-				});
-			}
+			portfolioData[i][0] = slicedResults[j][i][0];
+			portfolioData[i][1] += slicedResults[j][i][1];
+			
 		}
 	}
 	
@@ -77,6 +71,9 @@ var computePortfolio = function(slicedResults, callback) {
 }
 
 app.use(cors());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
 app.set('port', (process.env.PORT || 5000));
 
 app.get('/', function(req, res) {
@@ -84,16 +81,25 @@ app.get('/', function(req, res) {
 });
 
 app.get('/quandl', function(req, res) {
-	var stocks = req.query.stocks;
+	var stocks;
 	var count = 0;
+	
+	if (typeof req.query.stocks === 'string') {
+		stocks = [req.query.stocks];
+	} else if (typeof req.query.stocks === 'array') {
+		stocks =  req.query.stocks;
+	} else {
+		res.status(500).send('Unrecognized input data');
+	}
 	if (req.query.stocks === null || req.query.stocks.length === 0) {
 		res.json({
 			data: "Error occurred. Please pass in a valid array of stock tickers."
 		});
 	} else {
-		count = req.query.stocks.length;
+		count = stocks.length;
 	}
-	console.log(stocks);
+	
+	console.log('Count is ' + count);
 	var results = [];
 	var url, payload;
 	var j = 0;
