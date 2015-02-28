@@ -13,33 +13,81 @@ var apikey = 'J7hxBtcABx8AsszfDzq-',
 	extURL = '.json?column=11&sort_order=asc&collapse=monthly&auth_token=' + apikey;
 	url = 'https://www.quandl.com/api/v1/datasets/WIKI/AAPL.json?column=11&sort_order=asc&collapse=daily&auth_token=J7hxBtcABx8AsszfDzq-';
 
+// functions
+// asynchronous function that finds the latest date to start calculating portfolios from
+var getLatestDate = function(results, callback) {
+	var date, current,
+		maxDateString = results[0][0][0],
+		maxDate = new Date(results[0][0][0]);
+	for (var i = 0; i < results.length; i++) {
+		current = results[i][0][0];
+		date = new Date(current);
+		if (date > maxDate) {
+			maxDate = date;
+			maxDateString = current;
+		}
+	}
+	return callback(maxDateString);
+}
+
+// asynchronous function that removes all entries before a certain year
+var filterDataByMaxDate = function(date, results, callback) {
+	var currentDate,
+		maxDate = new Date(date),
+		currentDateString = date,
+		indexToSlice = [],
+		slicedResults = [];
+	for (var i = 0; i < results.length; i++) {
+		for (var j = 0; j < results[i].length; j++) {
+			currentDate = new Date(results[i][j][0]);
+			if (currentDate >= maxDate) {
+				indexToSlice.push(j);
+				break;
+			}
+		}
+		slicedResults.push(results[i].slice(indexToSlice[i], results[i].length));
+	}
+
+	return callback(slicedResults);
+}
+
 app.use(cors());
 app.set('port', (process.env.PORT || 5000));
 
 app.get('/', function(req, res) {
-	res.send('Hello there Nevil');
+	res.send('Welcome to the Markowitz server!');
 });
 
 app.get('/quandl', function(req, res) {
 	var stocks = req.query.stocks;
 	var count = req.query.stocks.length;
 	console.log(stocks);
-	results = [];
-	var url;
-	var payload;
+	var results = [];
+	var portfolioData = [];
+	var url, payload;
+	var j = 0;
 	for (var i = 0; i < stocks.length; i++) {
 		url = baseURL + stocks[i] + extURL;
 		request(url, function(error, response, body) {
 			if (!error && response.statusCode == 200) {
 				payload = JSON.parse(body);
 				results.push(payload.data);
+				j++;
+				// check if we should return yet. Avoids using setTimeout
+				if (j === count) {
+					// res.json(results);
+					getLatestDate(results, function(maxDateString) {
+						filterDataByMaxDate(maxDateString, results, function(slicedResults) {
+							res.json(slicedResults);
+						});
+					});
+				}
 			}
 		});
 	}
-
-	setTimeout(function() {
-		res.json(results);
-	}, 500 * count);
+	// setTimeout(function() {
+	// 	res.json(results);
+	// }, 500 * count);
 });
 
 app.get('/test', function(req, res) {
