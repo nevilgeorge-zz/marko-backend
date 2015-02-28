@@ -53,16 +53,20 @@ var filterDataByMaxDate = function(date, results, callback) {
 
 // asychronous function that calculates the stock portfolio given the values of all stocks
 var computePortfolio = function(slicedResults, callback) {
-	var temp;
-	var inverseWeight = slicedResults.length;
-	for (var i = 0; i < slicedResults.length; i++) {
-		for (var j = 0; j < slicedResults[i].length; j++) {
-			temp = slicedResults[i][j][1] / inverseWeight;
-			slicedResults[i][j][1] = temp;
+	var temp,
+		inverseWeight = slicedResults.length,
+		portfolioData = [];
+
+	for (var i = 0; i < slicedResults[0].length; i++) {
+		portfolioData[i] = [];
+		portfolioData[i][1] = 0;
+		for (var j = 0; j < slicedResults.length; j++) {
+			portfolioData[i][0] = slicedResults[j][i][0];
+			portfolioData[i][1] += slicedResults[j][i][1];
 		}
 	}
-
-	return callback(slicedResults);
+	
+	return callback(portfolioData);
 }
 
 app.use(cors());
