@@ -86,7 +86,7 @@ app.get('/', function(req, res) {
 app.get('/quandl', function(req, res) {
 	var stocks = req.query.stocks;
 	var count = 0;
-	if (req.query.stocks !== null || req.query.stocks.length === 0) {
+	if (req.query.stocks === null || req.query.stocks.length === 0) {
 		res.json({
 			data: "Error occurred. Please pass in a valid array of stock tickers."
 		});
