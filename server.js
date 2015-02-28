@@ -1,7 +1,8 @@
 // server.js
 
 var express = require('express'),
-	app = express();
+	app = express(),
+	request = require('request');
 
 app.set('port', (process.env.PORT || 5000));
 
