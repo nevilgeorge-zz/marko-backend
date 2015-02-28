@@ -22,6 +22,7 @@ app.get('/', function(req, res) {
 
 app.get('/quandl', function(req, res) {
 	var stocks = req.query.stocks;
+	var count = req.query.stocks.length;
 	console.log(stocks);
 	results = [];
 	var url;
@@ -38,7 +39,16 @@ app.get('/quandl', function(req, res) {
 
 	setTimeout(function() {
 		res.json(results);
-	}, 3000);
+	}, 500 * count);
+});
+
+app.get('/test', function(req, res) {
+	res.json({
+		data: 
+			[[1147651200000,67.79],
+			[1147737600000,64.98],
+			[1147824000000,65.26]]
+	});
 });
 
 app.listen(app.get('port'), function() {
