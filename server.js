@@ -51,6 +51,20 @@ var filterDataByMaxDate = function(date, results, callback) {
 	return callback(slicedResults);
 }
 
+// asychronous function that calculates the stock portfolio given the values of all stocks
+var computePortfolio = function(slicedResults, callback) {
+	var temp;
+	var inverseWeight = slicedResults.length;
+	for (var i = 0; i < slicedResults.length; i++) {
+		for (var j = 0; j < slicedResults[i].length; j++) {
+			temp = slicedResults[i][j][1] / inverseWeight;
+			slicedResults[i][j][1] = temp;
+		}
+	}
+
+	return callback(slicedResults);
+}
+
 app.use(cors());
 app.set('port', (process.env.PORT || 5000));
 
@@ -63,7 +77,6 @@ app.get('/quandl', function(req, res) {
 	var count = req.query.stocks.length;
 	console.log(stocks);
 	var results = [];
-	var portfolioData = [];
 	var url, payload;
 	var j = 0;
 	for (var i = 0; i < stocks.length; i++) {
@@ -78,7 +91,14 @@ app.get('/quandl', function(req, res) {
 					// res.json(results);
 					getLatestDate(results, function(maxDateString) {
 						filterDataByMaxDate(maxDateString, results, function(slicedResults) {
-							res.json(slicedResults);
+							var returnData = [];
+							computePortfolio(slicedResults, function(portfolioData) {
+								for (var i = 0; i < results.length; i++) {
+									returnData.push(results[i]);
+								}
+								returnData.push(portfolioData);
+								res.json(returnData);
+							});
 						});
 					});
 				}
