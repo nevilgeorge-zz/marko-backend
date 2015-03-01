@@ -7,7 +7,8 @@ var express = require('express'),
 	cors = require('cors'),
 	wait = require('wait.for'),
 	bodyParser = require('body-parser'),
-	_ = require('underscore');
+	_ = require('underscore'),
+	fs = require('fs');
 
 // variables
 var apikey = 'J7hxBtcABx8AsszfDzq-',
@@ -153,6 +154,24 @@ app.get('/test', function(req, res) {
 			[[1147651200000,67.79],
 			[1147737600000,64.98],
 			[1147824000000,65.26]]
+	});
+});
+
+app.get('/french', function(req, res) {
+	var data, result,
+		factor = req.query.factor;
+	console.log(req.query);
+	if (factor === null || _.isEmpty(factor) || _.isEmpty(req.query) || typeof factor !== 'string') {
+		return res.json([]);
+	}
+
+	fs.readFile('./F-F_Factors.json', 'utf8', function(err, data) {
+		if (err) {
+			return console.log(err);
+		}
+		data = JSON.parse(data);
+		result = data[factor];
+		res.json(result);
 	});
 });
 
