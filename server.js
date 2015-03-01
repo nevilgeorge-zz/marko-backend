@@ -6,7 +6,8 @@ var express = require('express'),
 	request = require('request'),
 	cors = require('cors'),
 	wait = require('wait.for'),
-	bodyParser = require('body-parser');
+	bodyParser = require('body-parser'),
+	_ = require('underscore');
 
 // variables
 var apikey = 'J7hxBtcABx8AsszfDzq-',
@@ -33,26 +34,6 @@ var getLatestDate = function(results, callback) {
 }
 
 // asynchronous function that removes all entries before a certain year
-// var filterDataByMaxDate = function(date, results, callback) {
-// 	var currentDate,
-// 		maxDate = new Date(date),
-// 		currentDateString = date,
-// 		indexToSlice = [],
-// 		slicedResults = [];
-// 	for (var i = 0; i < results.length; i++) {
-// 		for (var j = 0; j < results[i].length; j++) {
-// 			currentDate = new Date(results[i][j][0]);
-// 			if (currentDate >= maxDate) {
-// 				indexToSlice.push(j);
-// 				break;
-// 			}
-// 		}
-// 		slicedResults.push(results[i].slice(indexToSlice[i], results[i].length));
-// 	}
-
-// 	return callback(slicedResults);
-// }
-
 var filterDataByMaxDate = function(results, index, callback) {
 	var shortestLength = results[index].length,
 		slicedResults = [],
@@ -67,25 +48,6 @@ var filterDataByMaxDate = function(results, index, callback) {
 }
 
 // asychronous function that calculates the stock portfolio given the values of all stocks
-// var computePortfolio = function(slicedResults, callback) {
-// 	var temp,
-// 		inverseWeight = slicedResults.length,
-// 		portfolioData = [];
-
-// 	console.log('col: ' + slicedResults.length);
-// 	console.log('row: ' + slicedResults[0].length)
-// 	for (var i = 0; i < slicedResults[0].length; i++) {
-// 		portfolioData[i] = [];
-// 		portfolioData[i][1] = 0;
-// 		for (var j = 0; j < slicedResults.length; j++) {
-// 			portfolioData[i][0] = slicedResults[j][i][0];
-// 			portfolioData[i][1] += slicedResults[j][i][1];
-// 		}
-// 	}
-	
-// 	return callback(portfolioData);
-// }
-
 var computePortfolio = function(res, length, callback) {
 	var aggr, rows, col,
 		temp = [],
@@ -118,23 +80,18 @@ app.get('/', function(req, res) {
 });
 
 app.get('/quandl', function(req, res) {
-	var stocks;
-	var count = 0;
-	if (req.query.stocks === null || req.query.stocks.length === 0) {
-		res.json({
-			data: "Error occurred. Please pass in a valid array of stock tickers."
-		});
-	} else {
-		count = stocks.length;
+	console.log(req.query);
+	if (req.query.stocks === null || _.isEmpty(req.query)) {
+		// res.status(500).send('You sent an empty array.');
+		return res.json([]);
 	}
-	
+
 	if (typeof req.query.stocks === 'string') {
 		stocks = [req.query.stocks];
 	} else {
 		stocks =  req.query.stocks;
 	}
-	
-	
+	var count = stocks.length;
 	var results = [];
 	var url, payload;
 	var j = 0;
@@ -156,7 +113,7 @@ app.get('/quandl', function(req, res) {
 									returnData.push(results[i]);
 								}
 								returnData.push(portfolioData);
-								res.json(returnData);
+								return res.json(returnData);
 							});
 						});
 					});
