@@ -71,8 +71,22 @@ var computePortfolio = function(res, length, callback) {
 	return callback(returnArr);
 }
 
-var findCorrelation = function(arrays) {
-	console.log(arrays);
+var stripDates = function(array) {
+	var newArr = [];
+	for (var i = 0; i < array.length; i++) {
+		newArr.push(array[i][1]);
+	}
+	return newArr;
+}
+
+var findCorrelation = function(stocks, callback) {
+	var argArray = [];
+	for (var i = 0; i < stocks.length; i++) {
+		var temp = stripDates(stocks[i]);
+		argArray.push(temp);
+		console.log(temp.length);
+	}
+	return callback(compute.pcorr.apply(null, argArray));
 }
 
 // middleware
@@ -205,7 +219,7 @@ app.get('/strategy', function(req, res) {
 	});
 });
 
-app.get('/computeStock', function(req, res) {
+app.get('/compute/stock', function(req, res) {
 	var series = req.query.stocks;
 	if (series === null || _.isEmpty(series) || _.isEmpty(req.query)) {
 		return res.json([]);
@@ -233,7 +247,13 @@ app.get('/computeStock', function(req, res) {
 					getLatestDate(results, function(maxDateString, index) {
 						filterDataByMaxDate(results, index, function(slicedResults, length) {
 							findCorrelation(slicedResults, function(returnData) {
+								for (var i = 0; i < returnData.length; i++) {
+									for (var j = 0; j < returnData[i].length; j++) {
+										returnData[i][j] += 1;
+									}
+								}
 								return res.json(returnData);
+								// return res.json(returnData);
 							});
 						});
 					});
@@ -241,7 +261,38 @@ app.get('/computeStock', function(req, res) {
 			}
 		});
 	}
+});
 
+app.get('/compute/strategy', function(req, res) {
+	var series = req.query.strategies;
+	if (series === null || _.isEmpty(series) || _.isEmpty(req.query)) {
+		return res.json([]);
+	}
+	
+	if (typeof req.query.stocks === 'string') {
+		strats = [series];
+	} else {
+		strats =  series;
+	}
+	var count = strats.length;
+	var results = [];
+	fs.readFile('./F-F_Factors.json', 'utf8', function(err, data) {
+		if (err) {
+			return console.log(err);
+		}
+		data = JSON.parse(data);
+		for (var i = 0; i < strats.length; i++) {
+			results.push(data[strats[i]]);
+		}
+		findCorrelation(results, function(returnData) {
+			for (var i = 0; i < returnData.length; i++) {
+				for (var j = 0; j < returnData[i].length; j++) {
+					returnData[i][j] += 1;
+				}
+			}
+			return res.json(returnData);
+		});
+	});
 });
 
 app.listen(app.get('port'), function() {
