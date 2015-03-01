@@ -219,6 +219,11 @@ app.get('/strategy', function(req, res) {
 	});
 });
 
+/* 
+Endpoint to get portfolio chord graph data for multiple stocks.
+@params: stock tickers as an array of strings passed in as a JSON parameter with key 'stocks'. eg. { stocks: ['AAPL', 'MSFT'] }
+@returns: an array of arrays that holds data to be plotted by high charts of only the portfolio plot
+*/
 app.get('/compute/stock', function(req, res) {
 	var series = req.query.stocks;
 	if (series === null || _.isEmpty(series) || _.isEmpty(req.query)) {
@@ -263,6 +268,11 @@ app.get('/compute/stock', function(req, res) {
 	}
 });
 
+/* 
+Endpoint to get portfolio chord graph data for multiple stocks.
+@params: stock tickers as an array of strings passed in as a JSON parameter with key 'stocks'. eg. { stocks: ['AAPL', 'MSFT'] }
+@returns: an array of arrays that holds data to be plotted by high charts of only the portfolio plot
+*/
 app.get('/compute/strategy', function(req, res) {
 	var series = req.query.strategies;
 	if (series === null || _.isEmpty(series) || _.isEmpty(req.query)) {
