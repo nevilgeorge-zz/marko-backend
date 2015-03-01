@@ -135,6 +135,10 @@ app.get('/test', function(req, res) {
 	});
 });
 
+app.get('/tina', function(req, res) {
+	res.send('Hello Tina');
+});
+
 app.listen(app.get('port'), function() {
 	console.log('App listening on port ' + app.get('port') + '...');
 });
