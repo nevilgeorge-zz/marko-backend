@@ -8,7 +8,8 @@ var express = require('express'),
 	wait = require('wait.for'),
 	bodyParser = require('body-parser'),
 	_ = require('underscore'),
-	fs = require('fs');
+	fs = require('fs'),
+	compute = require('compute.io');
 
 // variables
 var apikey = 'J7hxBtcABx8AsszfDzq-',
@@ -51,6 +52,7 @@ var filterDataByMaxDate = function(results, index, callback) {
 // asychronous function that calculates the stock portfolio given the values of all stocks
 var computePortfolio = function(res, length, callback) {
 	var aggr, rows, col,
+		inverseWeight = length,
 		temp = [],
 		returnArr = [];
 
@@ -60,7 +62,7 @@ var computePortfolio = function(res, length, callback) {
 		// grab date
 		temp.push(res[0][row][0])
 		for (var col = 0; col < res.length; col++) {
-			aggr += res[col][row][1];
+			aggr += res[col][row][1] / inverseWeight;
 			
 		}
 		temp.push(aggr);
@@ -70,12 +72,19 @@ var computePortfolio = function(res, length, callback) {
 	return callback(returnArr);
 }
 
+var findCorrelation = function(arrays) {
+	console.log(arrays);
+}
+
+// middleware
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.set('port', (process.env.PORT || 5000));
 
+
+// ENDPOINTS
 app.get('/', function(req, res) {
 	res.send('Welcome to the Markowitz server!');
 });
@@ -148,15 +157,6 @@ app.get('/quandl', function(req, res) {
 	});
 });
 
-app.get('/test', function(req, res) {
-	res.json({
-		data: 
-			[[1147651200000,67.79],
-			[1147737600000,64.98],
-			[1147824000000,65.26]]
-	});
-});
-
 /* 
 Endpoint to get graph data from the Fama-French data.
 @params: investment strategy as a string passed in as a JSON parameter with key 'factor'. eg. { factor: 'AAPL' }
@@ -178,6 +178,75 @@ app.get('/french', function(req, res) {
 		result = data[factor];
 		res.json(result);
 	});
+});
+
+
+/* 
+Endpoint to get portfolio graph data for multiple strategies.
+@params: stock tickers as an array of strings passed in as a JSON parameter with key 'strategies'. eg. { strategies: ['AAPL', 'MSFT'] }
+@returns: an array of arrays that holds data to be plotted by high charts of only the portfolio plot
+*/
+app.get('/strategy', function(req, res) {
+	var strats = req.query.strategies;
+	if (strats === null || _.isEmpty(strats) || _.isEmpty(req.query) || strats.length === 0) {
+		return res.json([]);
+	}
+
+	console.log(strats);
+	var count = strats.length;
+	var results = [];
+	fs.readFile('./F-F_Factors.json', 'utf8', function(err, data) {
+		if (err) {
+			return console.log(err);
+		}
+		data = JSON.parse(data);
+		for (var k in data) {
+			results.push(data[k]);
+		}
+		console.log(results);
+		computePortfolio(results, results[0].length, function(returnData) {
+			return res.json(returnData);
+		});
+	});
+});
+
+app.get('/computeStock', function(req, res) {
+	var series = req.query.stocks;
+	if (series === null || _.isEmpty(series) || _.isEmpty(req.query)) {
+		return res.json([]);
+	}
+	
+	if (typeof req.query.stocks === 'string') {
+		stocks = [req.query.stocks];
+	} else {
+		stocks =  req.query.stocks;
+	}
+	var count = stocks.length;
+	var results = [];
+	var url, payload;
+	var j = 0;
+	for (var i = 0; i < stocks.length; i++) {
+		url = baseURL + stocks[i] + extURL;
+		request(url, function(error, response, body) {
+			if (!error && response.statusCode == 200) {
+				payload = JSON.parse(body);
+				results.push(payload.data);
+				j++;
+				// check if we should return yet. Avoids using setTimeout
+				if (j === count) {
+					// res.json(results);
+					getLatestDate(results, function(maxDateString, index) {
+						filterDataByMaxDate(results, index, function(slicedResults, length) {
+							findCorrelation(slicedResults, function(returnData) {
+								return res.json(returnData);
+							});
+						});
+					});
+				}
+			}
+		});
+	}
+
 });
 
 app.listen(app.get('port'), function() {
