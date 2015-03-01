@@ -157,6 +157,11 @@ app.get('/test', function(req, res) {
 	});
 });
 
+/* 
+Endpoint to get graph data from the Fama-French data.
+@params: investment strategy as a string passed in as a JSON parameter with key 'factor'. eg. { factor: 'AAPL' }
+@returns: an array of arrays that holds data to be plotted by high charts
+*/
 app.get('/french', function(req, res) {
 	var data, result,
 		factor = req.query.factor;
