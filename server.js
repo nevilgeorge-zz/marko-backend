@@ -79,7 +79,7 @@ app.get('/', function(req, res) {
 	res.send('Welcome to the Markowitz server!');
 });
 
-app.get('/quandl', function(req, res) {
+app.get('/portfolio', function(req, res) {
 	console.log(req.query);
 	if (req.query.stocks === null || _.isEmpty(req.query)) {
 		// res.status(500).send('You sent an empty array.');
@@ -107,12 +107,7 @@ app.get('/quandl', function(req, res) {
 					// res.json(results);
 					getLatestDate(results, function(maxDateString, index) {
 						filterDataByMaxDate(results, index, function(slicedResults, length) {
-							var returnData = [];
-							computePortfolio(slicedResults, length, function(portfolioData) {
-								for (var i = 0; i < results.length; i++) {
-									returnData.push(results[i]);
-								}
-								returnData.push(portfolioData);
+							computePortfolio(slicedResults, length, function(returnData) {
 								return res.json(returnData);
 							});
 						});
@@ -126,6 +121,10 @@ app.get('/quandl', function(req, res) {
 	// }, 500 * count);
 });
 
+// app.get('/quandl', function(req, res) {
+
+// });
+
 app.get('/test', function(req, res) {
 	res.json({
 		data: 
@@ -133,10 +132,6 @@ app.get('/test', function(req, res) {
 			[1147737600000,64.98],
 			[1147824000000,65.26]]
 	});
-});
-
-app.get('/tina', function(req, res) {
-	res.send('Hello Tina');
 });
 
 app.listen(app.get('port'), function() {
