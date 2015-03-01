@@ -17,6 +17,7 @@ var apikey = 'J7hxBtcABx8AsszfDzq-',
 // asynchronous function that finds the latest date to start calculating portfolios from
 var getLatestDate = function(results, callback) {
 	var date, current,
+		index = 0,
 		maxDateString = results[0][0][0],
 		maxDate = new Date(results[0][0][0]);
 	for (var i = 0; i < results.length; i++) {
@@ -25,49 +26,86 @@ var getLatestDate = function(results, callback) {
 		if (date > maxDate) {
 			maxDate = date;
 			maxDateString = current;
+			index = i;
 		}
 	}
-	return callback(maxDateString);
+	return callback(results, index);
 }
 
 // asynchronous function that removes all entries before a certain year
-var filterDataByMaxDate = function(date, results, callback) {
-	var currentDate,
-		maxDate = new Date(date),
-		currentDateString = date,
-		indexToSlice = [],
-		slicedResults = [];
+// var filterDataByMaxDate = function(date, results, callback) {
+// 	var currentDate,
+// 		maxDate = new Date(date),
+// 		currentDateString = date,
+// 		indexToSlice = [],
+// 		slicedResults = [];
+// 	for (var i = 0; i < results.length; i++) {
+// 		for (var j = 0; j < results[i].length; j++) {
+// 			currentDate = new Date(results[i][j][0]);
+// 			if (currentDate >= maxDate) {
+// 				indexToSlice.push(j);
+// 				break;
+// 			}
+// 		}
+// 		slicedResults.push(results[i].slice(indexToSlice[i], results[i].length));
+// 	}
+
+// 	return callback(slicedResults);
+// }
+
+var filterDataByMaxDate = function(results, index, callback) {
+	var shortestLength = results[index].length,
+		slicedResults = [],
+		diff, sliced;
 	for (var i = 0; i < results.length; i++) {
-		for (var j = 0; j < results[i].length; j++) {
-			currentDate = new Date(results[i][j][0]);
-			if (currentDate >= maxDate) {
-				indexToSlice.push(j);
-				break;
-			}
-		}
-		slicedResults.push(results[i].slice(indexToSlice[i], results[i].length));
+		diff = results[i].length - shortestLength;
+		sliced = results[i].slice(diff, results[i].length)
+		slicedResults.push(sliced);
 	}
 
-	return callback(slicedResults);
+	return callback(slicedResults, slicedResults[0].length);
 }
 
 // asychronous function that calculates the stock portfolio given the values of all stocks
-var computePortfolio = function(slicedResults, callback) {
-	var temp,
-		inverseWeight = slicedResults.length,
-		portfolioData = [];
+// var computePortfolio = function(slicedResults, callback) {
+// 	var temp,
+// 		inverseWeight = slicedResults.length,
+// 		portfolioData = [];
 
-	for (var i = 0; i < slicedResults[0].length; i++) {
-		portfolioData[i] = [];
-		portfolioData[i][1] = 0;
-		for (var j = 0; j < slicedResults.length; j++) {
-			portfolioData[i][0] = slicedResults[j][i][0];
-			portfolioData[i][1] += slicedResults[j][i][1];
+// 	console.log('col: ' + slicedResults.length);
+// 	console.log('row: ' + slicedResults[0].length)
+// 	for (var i = 0; i < slicedResults[0].length; i++) {
+// 		portfolioData[i] = [];
+// 		portfolioData[i][1] = 0;
+// 		for (var j = 0; j < slicedResults.length; j++) {
+// 			portfolioData[i][0] = slicedResults[j][i][0];
+// 			portfolioData[i][1] += slicedResults[j][i][1];
+// 		}
+// 	}
+	
+// 	return callback(portfolioData);
+// }
+
+var computePortfolio = function(res, length, callback) {
+	var aggr, rows, col,
+		temp = [],
+		returnArr = [];
+
+	for (var row = 0; row < length; row++) {
+		aggr = 0;
+		temp = [];
+		// grab date
+		temp.push(res[0][row][0])
+		for (var col = 0; col < res.length; col++) {
+			console.log('in nested');
+			aggr += res[col][row][1];
 			
 		}
+		temp.push(aggr);
+		returnArr.push(temp);
 	}
-	
-	return callback(portfolioData);
+
+	return callback(returnArr);
 }
 
 app.use(cors());
@@ -83,13 +121,10 @@ app.get('/', function(req, res) {
 app.get('/quandl', function(req, res) {
 	var stocks;
 	var count = 0;
-	
 	if (typeof req.query.stocks === 'string') {
 		stocks = [req.query.stocks];
-	} else if (typeof req.query.stocks === 'array') {
-		stocks =  req.query.stocks;
 	} else {
-		res.status(500).send('Unrecognized input data');
+		stocks =  req.query.stocks;
 	}
 	if (req.query.stocks === null || req.query.stocks.length === 0) {
 		res.json({
@@ -113,10 +148,10 @@ app.get('/quandl', function(req, res) {
 				// check if we should return yet. Avoids using setTimeout
 				if (j === count) {
 					// res.json(results);
-					getLatestDate(results, function(maxDateString) {
-						filterDataByMaxDate(maxDateString, results, function(slicedResults) {
+					getLatestDate(results, function(maxDateString, index) {
+						filterDataByMaxDate(results, index, function(slicedResults, length) {
 							var returnData = [];
-							computePortfolio(slicedResults, function(portfolioData) {
+							computePortfolio(slicedResults, length, function(portfolioData) {
 								for (var i = 0; i < results.length; i++) {
 									returnData.push(results[i]);
 								}
