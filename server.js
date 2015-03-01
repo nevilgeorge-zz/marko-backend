@@ -79,6 +79,11 @@ app.get('/', function(req, res) {
 	res.send('Welcome to the Markowitz server!');
 });
 
+/* 
+Endpoint to get portfolio graph data for multiple stocks.
+@params: stock tickers as an array of strings passed in as a JSON parameter with key 'stocks'. eg. { stocks: ['AAPL', 'MSFT'] }
+@returns: an array of arrays that holds data to be plotted by high charts of only the portfolio plot
+*/
 app.get('/portfolio', function(req, res) {
 	console.log(req.query);
 	if (req.query.stocks === null || _.isEmpty(req.query)) {
@@ -121,9 +126,26 @@ app.get('/portfolio', function(req, res) {
 	// }, 500 * count);
 });
 
-// app.get('/quandl', function(req, res) {
-
-// });
+/* 
+Endpoint to get graph data for one stock.
+@params: stock ticker as a string passed in as a JSON parameter with key 'stock'. eg. { stock: 'AAPL' }
+@returns: an array of arrays that holds data to be plotted by high charts
+*/
+app.get('/quandl', function(req, res) {
+	var url,
+		stock = req.query.stock;
+	if (stock === null || _.isEmpty(req.query) || _.isEmpty(stock) || typeof stock !== 'string') {
+		return res.json([]);
+	}
+	
+	url = baseURL + stock + extURL;
+	request(url, function(error, response, body) {
+		if (!error && response.statusCode == 200) {
+			var payload = JSON.parse(body);
+			return res.json(payload.data);
+		}
+	});
+});
 
 app.get('/test', function(req, res) {
 	res.json({
