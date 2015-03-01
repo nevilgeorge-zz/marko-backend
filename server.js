@@ -97,7 +97,6 @@ var computePortfolio = function(res, length, callback) {
 		// grab date
 		temp.push(res[0][row][0])
 		for (var col = 0; col < res.length; col++) {
-			console.log('in nested');
 			aggr += res[col][row][1];
 			
 		}
@@ -134,7 +133,6 @@ app.get('/quandl', function(req, res) {
 		count = stocks.length;
 	}
 	
-	console.log('Count is ' + count);
 	var results = [];
 	var url, payload;
 	var j = 0;
