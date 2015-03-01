@@ -273,37 +273,37 @@ Endpoint to get portfolio chord graph data for multiple stocks.
 @params: stock tickers as an array of strings passed in as a JSON parameter with key 'stocks'. eg. { stocks: ['AAPL', 'MSFT'] }
 @returns: an array of arrays that holds data to be plotted by high charts of only the portfolio plot
 */
-app.get('/compute/strategy', function(req, res) {
-	var series = req.query.strategies;
-	if (series === null || _.isEmpty(series) || _.isEmpty(req.query)) {
-		return res.json([]);
-	}
+// app.get('/compute/strategy', function(req, res) {
+// 	var series = req.query.strategies;
+// 	if (series === null || _.isEmpty(series) || _.isEmpty(req.query)) {
+// 		return res.json([]);
+// 	}
 	
-	if (typeof req.query.stocks === 'string') {
-		strats = [series];
-	} else {
-		strats =  series;
-	}
-	var count = strats.length;
-	var results = [];
-	fs.readFile('./F-F_Factors.json', 'utf8', function(err, data) {
-		if (err) {
-			return console.log(err);
-		}
-		data = JSON.parse(data);
-		for (var i = 0; i < strats.length; i++) {
-			results.push(data[strats[i]]);
-		}
-		findCorrelation(results, function(returnData) {
-			for (var i = 0; i < returnData.length; i++) {
-				for (var j = 0; j < returnData[i].length; j++) {
-					returnData[i][j] += 1;
-				}
-			}
-			return res.json(returnData);
-		});
-	});
-});
+// 	if (typeof req.query.stocks === 'string') {
+// 		strats = [series];
+// 	} else {
+// 		strats =  series;
+// 	}
+// 	var count = strats.length;
+// 	var results = [];
+// 	fs.readFile('./F-F_Factors.json', 'utf8', function(err, data) {
+// 		if (err) {
+// 			return console.log(err);
+// 		}
+// 		data = JSON.parse(data);
+// 		for (var i = 0; i < strats.length; i++) {
+// 			results.push(data[strats[i]]);
+// 		}
+// 		findCorrelation(results, function(returnData) {
+// 			for (var i = 0; i < returnData.length; i++) {
+// 				for (var j = 0; j < returnData[i].length; j++) {
+// 					returnData[i][j] += 1;
+// 				}
+// 			}
+// 			return res.json(returnData);
+// 		});
+// 	});
+// });
 
 app.listen(app.get('port'), function() {
 	console.log('App listening on port ' + app.get('port') + '...');
