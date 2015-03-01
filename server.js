@@ -51,8 +51,8 @@ var filterDataByMaxDate = function(results, index, callback) {
 
 // asychronous function that calculates the stock portfolio given the values of all stocks
 var computePortfolio = function(res, length, callback) {
-	var aggr, rows, col,
-		inverseWeight = length,
+	var aggr,
+		// inverseWeight = res.length,
 		temp = [],
 		returnArr = [];
 
@@ -62,7 +62,8 @@ var computePortfolio = function(res, length, callback) {
 		// grab date
 		temp.push(res[0][row][0])
 		for (var col = 0; col < res.length; col++) {
-			aggr += res[col][row][1] / inverseWeight;
+			aggr += res[col][row][1];
+			console.log(res[col][row][1]);
 			
 		}
 		temp.push(aggr);
@@ -203,7 +204,6 @@ app.get('/strategy', function(req, res) {
 		for (var k in data) {
 			results.push(data[k]);
 		}
-		console.log(results);
 		computePortfolio(results, results[0].length, function(returnData) {
 			return res.json(returnData);
 		});
