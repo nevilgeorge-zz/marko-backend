@@ -63,8 +63,6 @@ var computePortfolio = function(res, length, callback) {
 		temp.push(res[0][row][0])
 		for (var col = 0; col < res.length; col++) {
 			aggr += res[col][row][1];
-			console.log(res[col][row][1]);
-			
 		}
 		temp.push(aggr);
 		returnArr.push(temp);
@@ -96,7 +94,6 @@ Endpoint to get portfolio graph data for multiple stocks.
 @returns: an array of arrays that holds data to be plotted by high charts of only the portfolio plot
 */
 app.get('/portfolio', function(req, res) {
-	console.log(req.query);
 	if (req.query.stocks === null || _.isEmpty(req.query)) {
 		// res.status(500).send('You sent an empty array.');
 		return res.json([]);
@@ -166,7 +163,6 @@ Endpoint to get graph data from the Fama-French data.
 app.get('/french', function(req, res) {
 	var data, result,
 		factor = req.query.factor;
-	console.log(req.query);
 	if (factor === null || _.isEmpty(factor) || _.isEmpty(req.query) || typeof factor !== 'string') {
 		return res.json([]);
 	}
@@ -193,7 +189,6 @@ app.get('/strategy', function(req, res) {
 		return res.json([]);
 	}
 
-	console.log(strats);
 	var count = strats.length;
 	var results = [];
 	fs.readFile('./F-F_Factors.json', 'utf8', function(err, data) {
