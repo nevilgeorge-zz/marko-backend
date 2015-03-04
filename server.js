@@ -107,7 +107,7 @@ Endpoint to get portfolio graph data for multiple stocks.
 @params: stock tickers as an array of strings passed in as a JSON parameter with key 'stocks'. eg. { stocks: ['AAPL', 'MSFT'] }
 @returns: an array of arrays that holds data to be plotted by high charts of only the portfolio plot
 */
-app.get('/portfolio', function(req, res) {
+app.get('/portfolio/stock', function(req, res) {
 	if (req.query.stocks === null || _.isEmpty(req.query)) {
 		// res.status(500).send('You sent an empty array.');
 		return res.json([]);
@@ -153,7 +153,7 @@ Endpoint to get graph data for one stock.
 @params: stock ticker as a string passed in as a JSON parameter with key 'stock'. eg. { stock: 'AAPL' }
 @returns: an array of arrays that holds data to be plotted by high charts
 */
-app.get('/quandl', function(req, res) {
+app.get('/graph/stock', function(req, res) {
 	var url,
 		stock = req.query.stock;
 	if (stock === null || _.isEmpty(req.query) || _.isEmpty(stock) || typeof stock !== 'string') {
@@ -174,7 +174,7 @@ Endpoint to get graph data from the Fama-French data.
 @params: investment strategy as a string passed in as a JSON parameter with key 'factor'. eg. { factor: 'AAPL' }
 @returns: an array of arrays that holds data to be plotted by high charts
 */
-app.get('/french', function(req, res) {
+app.get('/graph/strategy', function(req, res) {
 	var data, result,
 		factor = req.query.factor;
 	if (factor === null || _.isEmpty(factor) || _.isEmpty(req.query) || typeof factor !== 'string') {
@@ -197,7 +197,7 @@ Endpoint to get portfolio graph data for multiple strategies.
 @params: stock tickers as an array of strings passed in as a JSON parameter with key 'strategies'. eg. { strategies: ['AAPL', 'MSFT'] }
 @returns: an array of arrays that holds data to be plotted by high charts of only the portfolio plot
 */
-app.get('/strategy', function(req, res) {
+app.get('/portfolio/strategy', function(req, res) {
 	var strats = req.query.strategies;
 	if (strats === null || _.isEmpty(strats) || _.isEmpty(req.query) || strats.length === 0) {
 		return res.json([]);
